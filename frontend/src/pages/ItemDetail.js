@@ -7,10 +7,21 @@ function ItemDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/items/' + id)
+    const abortController = new AbortController();
+
+    fetch('http://localhost:3001/api/items/' + id, { signal: abortController.signal })
       .then(res => res.ok ? res.json() : Promise.reject(res))
       .then(setItem)
-      .catch(() => navigate('/'));
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          console.error('Failed to fetch item:', err);
+          navigate('/');
+        }
+      });
+
+    return () => {
+      abortController.abort();
+    };
   }, [id, navigate]);
 
   if (!item) return <p>Loading...</p>;

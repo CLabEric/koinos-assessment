@@ -5,6 +5,7 @@ const itemsRouter = require('./routes/items');
 const statsRouter = require('./routes/stats');
 const cors = require('cors');
 const { notFound } = require('./middleware/errorHandler');
+const { initStatsCache } = require('./utils/stats');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -21,4 +22,19 @@ app.use('/api/stats', statsRouter);
 // Not Found
 app.use('*', notFound);
 
-app.listen(port, () => console.log('Backend running on http://localhost:' + port));
+// Initialize stats cache and start server
+async function startServer() {
+  try {
+    // Initialize stats cache before starting server
+    await initStatsCache();
+    
+    app.listen(port, () => {
+      console.log('Backend running on http://localhost:' + port);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+startServer();
